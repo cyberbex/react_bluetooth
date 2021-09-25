@@ -19,6 +19,7 @@ import { Buffer } from "buffer";
 import Button from "./components/Button";
 import DeviceList from "./components/DeviceList";
 import styles from "./styles";
+import { read } from "fs";
 
 global.Buffer = Buffer;
 
@@ -95,7 +96,9 @@ class App extends React.Component {
     });
 
     this.events.on("data", result => {
+    
       if (result) {
+        
         const { id, data } = result;
         console.log(`Data from device ${id} : ${data}`);
       }
@@ -313,6 +316,7 @@ class App extends React.Component {
             ...device,
             ...connected,
             connected: true
+            
           },
           devices: devices.map(v => {
             if (v.id === connected.id) {
@@ -365,6 +369,22 @@ class App extends React.Component {
     }
   };
 
+  
+  read = async()=>{
+    try {
+      //const data = await BluetoothSerial.readFromDevice();
+      const data = await BluetoothSerial.readUntilDelimiter("\n");
+
+      console.log(data);
+
+    } catch (e) {
+      
+    }
+  }; 
+  
+  
+  
+
   write = async (id, message) => {
     try {
       await BluetoothSerial.device(id).write(message);
@@ -372,6 +392,7 @@ class App extends React.Component {
     } catch (e) {
       Toast.showShortBottom(e.message);
     }
+    console.log("qualquer coisa")
   };
 
   writePackets = async (id, message, packetSize = 64) => {
@@ -454,11 +475,30 @@ class App extends React.Component {
                         backgroundColor: "#22509d"
                       }}
                       textStyle={{ color: "#fff" }}
+
                       onPress={() =>
+                    
                         this.write(
                           id,
                           "This is the test message\r\nDoes it work?\r\nTell me it works!\r\n"
                         )
+                        
+                      }
+                    />
+                     <Button
+                      title="ler"
+                      style={{
+                        backgroundColor: "#22509d"
+                      }}
+                      textStyle={{ color: "#fff" }}
+
+                      onPress={() =>
+                    
+                        this.read(
+                          id,
+                          
+                        )
+                        
                       }
                     />
                     <Button
@@ -489,6 +529,10 @@ class App extends React.Component {
   };
 
   render() {
+   setInterval(() => {
+      this.read();
+    }, 10000);
+   
     const { isEnabled, device, devices, scanning, processing } = this.state;
 
     return (
