@@ -7,7 +7,8 @@ import {
   SafeAreaView,
   View,
   ActivityIndicator,
-  Modal
+  Modal,
+  TextInput
 } from "react-native";
 
 import Toast from "@remobile/react-native-toast";
@@ -26,7 +27,11 @@ global.Buffer = Buffer;
 
 const iconv = require("iconv-lite");
 
+
 class App extends React.Component {
+  
+   
+
   constructor(props) {
     super(props);
     this.events = null;
@@ -35,10 +40,22 @@ class App extends React.Component {
       device: null,
       devices: [],
       scanning: false,
-      processing: false
+      processing: false,
+     
+      
     };
   }
+  state = {
+    TempGeladeira: this.props.TempGeladeira,
+    TempFreezer:this.props.TempFreezer
+  }
 
+  alterarTempGeladeira(temp){
+    this.setState({TempGeladeira: temp })
+  }
+  alterarTempGeladeira(temp){
+    this.setState({TempGeladeira: temp })
+  }
   async componentDidMount() {
     this.events = this.props.events;
 
@@ -385,14 +402,14 @@ class App extends React.Component {
   
   
 
-  write = async (id, message) => {
+  write = async (message) => {
     try {
-      await BluetoothSerial.device(id).write(message);
+      await BluetoothSerial.write(message);
       Toast.showShortBottom("Successfuly wrote to device");
     } catch (e) {
       Toast.showShortBottom(e.message);
     }
-    console.log("qualquer coisa")
+    console.log(message)
   };
 
   writePackets = async (id, message, packetSize = 64) => {
@@ -433,12 +450,10 @@ class App extends React.Component {
           <View
             style={{
               flex: 1,
-              justifyContent: "center",
-              alignItems: "center"
             }}
           >
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>{name}</Text>
-            <Text style={{ fontSize: 14 }}>{`<${id}>`}</Text>
+            {/* <Text style={{ fontSize: 18, fontWeight: "bold" }}>{name}</Text>
+            <Text style={{ fontSize: 14 }}>{`<${id}>`}</Text> */}
 
             {processing && (
               <ActivityIndicator
@@ -448,29 +463,27 @@ class App extends React.Component {
             )}
 
             {!processing && (
-              <View style={{ marginTop: 20, width: "50%" }}>
-                {Platform.OS !== "ios" && (
-                  <Button
-                    title={paired ? "Unpair" : "Pair"}
-                    style={{
-                      backgroundColor: "#22509d"
-                    }}
-                    textStyle={{ color: "#fff" }}
-                    onPress={() => this.toggleDevicePairing(device)}
-                  />
-                )}
-                <Button
-                  title={connected ? "Disconnect" : "Connect"}
-                  style={{
-                    backgroundColor: "#22509d"
-                  }}
-                  textStyle={{ color: "#fff" }}
-                  onPress={() => this.toggleDeviceConnection(device)}
-                />
+              <View style={{ marginTop: 20, width: "100%" }}>
+               
+                 
                 {connected && (
                   <React.Fragment>
+                    
+                    <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+                       Temperatura Alvo Geladeira:
+                       {this.state.TempGeladeira}
+                       
+                      
+                    </Text>
+                    <TextInput
+                      keyboardType={'numeric'}
+                      style={{borderBottomWidth:1}}
+                      placeholder="Temperatura Geladeira Desejada"
+                      value={this.state.TempGeladeira}
+                      onChangeText={valor => this.alterarTempGeladeira(valor)}
+                    />
                     <Button
-                      title="Write"
+                      title="Enviar"
                       style={{
                         backgroundColor: "#22509d"
                       }}
@@ -479,43 +492,30 @@ class App extends React.Component {
                       onPress={() =>
                     
                         this.write(
-                          id,
-                          "This is the test message\r\nDoes it work?\r\nTell me it works!\r\n"
-                        )
-                        
-                      }
-                    />
-                     <Button
-                      title="ler"
-                      style={{
-                        backgroundColor: "#22509d"
-                      }}
-                      textStyle={{ color: "#fff" }}
-
-                      onPress={() =>
-                    
-                        this.read(
-                          id,
+                          
+                          "Geladeira="+this.state.TempGeladeira 
                           
                         )
+                       
                         
                       }
                     />
-                    <Button
-                      title="Write packets"
-                      style={{
-                        backgroundColor: "#22509d"
-                      }}
-                      textStyle={{ color: "#fff" }}
-                      onPress={() =>
-                        this.writePackets(
-                          id,
-                          "This is the test message\r\nDoes it work?\r\nTell me it works!\r\n"
-                        )
-                      }
-                    />
+                  
+            
+                  
                   </React.Fragment>
                 )}
+
+                <Button
+                  title={connected ? "Disconnect" : "Connect"}
+                  style={{
+                
+                    backgroundColor: "#22509d"
+                  }}
+                  textStyle={{ color: "#fff" }}
+                  onPress={() => this.toggleDeviceConnection(device)}
+                /> 
+                    
                 <Button
                   title="Close"
                   onPress={() => this.setState({ device: null })}
@@ -529,9 +529,9 @@ class App extends React.Component {
   };
 
   render() {
-   setInterval(() => {
+   /* setInterval(() => {
       this.read();
-    }, 10000);
+    }, 10000); */
    
     const { isEnabled, device, devices, scanning, processing } = this.state;
 
